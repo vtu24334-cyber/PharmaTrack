@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Vibrant Primary - Modern Blue */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Vibrant Secondary - Teal/Cyan */
+    --secondary: 189 94% 43%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Accent - Purple */
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+
+    /* Chart Colors - Vibrant & Distinct */
+    --chart-1: 217 91% 60%;    /* Blue */
+    --chart-2: 142 76% 36%;    /* Green */
+    --chart-3: 38 92% 50%;     /* Orange */
+    --chart-4: 262 83% 58%;    /* Purple */
+    --chart-5: 346 77% 50%;    /* Pink/Red */
+
+    /* Sidebar Colors */
+    --sidebar-background: 222.2 47% 11%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 189 94% 43%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Vibrant Primary - Bright Blue for dark mode */
+    --primary: 217 91% 65%;
+    --primary-foreground: 222.2 84% 4.9%;
+
+    /* Vibrant Secondary - Bright Cyan */
+    --secondary: 189 94% 50%;
+    --secondary-foreground: 222.2 84% 4.9%;
+
+    /* Accent - Bright Purple */
+    --accent: 262 83% 65%;
+    --accent-foreground: 222.2 84% 4.9%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --destructive: 0 62.8% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 217 91% 65%;
+
+    /* Chart Colors - Bright for dark mode */
+    --chart-1: 217 91% 65%;    /* Bright Blue */
+    --chart-2: 142 76% 45%;    /* Bright Green */
+    --chart-3: 38 92% 60%;     /* Bright Orange */
+    --chart-4: 262 83% 65%;    /* Bright Purple */
+    --chart-5: 346 77% 60%;    /* Bright Pink */
+
+    /* Sidebar Colors for dark mode */
+    --sidebar-background: 222.2 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 65%;
+    --sidebar-primary-foreground: 222.2 84% 4.9%;
+    --sidebar-accent: 189 94% 50%;
+    --sidebar-accent-foreground: 222.2 84% 4.9%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 217 91% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom gradient backgrounds */
+.gradient-bg {
+  background: linear-gradient(135deg, hsl(217, 91%, 60%) 0%, hsl(189, 94%, 43%) 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, hsl(217, 91%, 60%), hsl(262, 83%, 58%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
