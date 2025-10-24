@@ -22,24 +22,6 @@
       "static/chunks/706-a0e6cb3f2b1e85bb.js",
       "static/chunks/app/layout-3c9b89f5517da929.js"
     ],
-    "/api/[[...genkit]]/route": [
-      "static/chunks/webpack-a1c1f7b9af41a498.js",
-      "static/chunks/4bd1b696-409494caf8c83275.js",
-      "static/chunks/255-58fa4c490c9135b3.js",
-      "static/chunks/main-app-7fcce5438c353700.js",
-      "static/chunks/app/api/[[...genkit]]/route-eece1e3e4b06bdd5.js"
-    ],
-    "/budget/page": [
-      "static/chunks/webpack-a1c1f7b9af41a498.js",
-      "static/chunks/4bd1b696-409494caf8c83275.js",
-      "static/chunks/255-58fa4c490c9135b3.js",
-      "static/chunks/main-app-7fcce5438c353700.js",
-      "static/chunks/457b8330-6b53738aa764ea14.js",
-      "static/chunks/707-a642561a9830f0ae.js",
-      "static/chunks/753-bbe9f368da36e501.js",
-      "static/chunks/15-691d38094e2377cc.js",
-      "static/chunks/app/budget/page-d73e6cdfcf5fd82c.js"
-    ],
     "/batch-tracking/page": [
       "static/chunks/webpack-a1c1f7b9af41a498.js",
       "static/chunks/4bd1b696-409494caf8c83275.js",
@@ -53,6 +35,17 @@
       "static/chunks/951-e13740f6b737bed4.js",
       "static/chunks/751-a0cb16933bda794a.js",
       "static/chunks/app/batch-tracking/page-879bcb19bf9ea56a.js"
+    ],
+    "/budget/page": [
+      "static/chunks/webpack-a1c1f7b9af41a498.js",
+      "static/chunks/4bd1b696-409494caf8c83275.js",
+      "static/chunks/255-58fa4c490c9135b3.js",
+      "static/chunks/main-app-7fcce5438c353700.js",
+      "static/chunks/457b8330-6b53738aa764ea14.js",
+      "static/chunks/707-a642561a9830f0ae.js",
+      "static/chunks/753-bbe9f368da36e501.js",
+      "static/chunks/15-691d38094e2377cc.js",
+      "static/chunks/app/budget/page-d73e6cdfcf5fd82c.js"
     ],
     "/compliance/page": [
       "static/chunks/webpack-a1c1f7b9af41a498.js",

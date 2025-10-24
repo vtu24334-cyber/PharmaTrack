@@ -1,9 +1,8 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/api/[[...genkit]]/route": "app/api/[[...genkit]]/route.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/budget/page": "app/budget/page.js",
   "/batch-tracking/page": "app/batch-tracking/page.js",
+  "/budget/page": "app/budget/page.js",
   "/compliance/page": "app/compliance/page.js",
   "/formulas/[id]/page": "app/formulas/[id]/page.js",
   "/formulas/page": "app/formulas/page.js",
