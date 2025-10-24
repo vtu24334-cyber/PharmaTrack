@@ -1,13 +1,13 @@
 {
-  "/api/[[...genkit]]/route": "/api/[[...genkit]]",
   "/_not-found/page": "/_not-found",
+  "/api/[[...genkit]]/route": "/api/[[...genkit]]",
   "/favicon.ico/route": "/favicon.ico",
-  "/batch-tracking/page": "/batch-tracking",
   "/budget/page": "/budget",
+  "/batch-tracking/page": "/batch-tracking",
   "/compliance/page": "/compliance",
+  "/formulas/[id]/page": "/formulas/[id]",
   "/formulas/page": "/formulas",
   "/inventory/page": "/inventory",
-  "/formulas/[id]/page": "/formulas/[id]",
   "/page": "/",
   "/login/page": "/login"
 }
