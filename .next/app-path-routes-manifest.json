@@ -1,0 +1,13 @@
+{
+  "/api/[[...genkit]]/route": "/api/[[...genkit]]",
+  "/_not-found/page": "/_not-found",
+  "/favicon.ico/route": "/favicon.ico",
+  "/batch-tracking/page": "/batch-tracking",
+  "/budget/page": "/budget",
+  "/compliance/page": "/compliance",
+  "/formulas/page": "/formulas",
+  "/inventory/page": "/inventory",
+  "/formulas/[id]/page": "/formulas/[id]",
+  "/page": "/",
+  "/login/page": "/login"
+}

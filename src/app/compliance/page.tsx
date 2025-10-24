@@ -1,96 +1,464 @@
+"use client";
 
+import { useEffect, useState } from "react";
+import { ref, onValue, set, update, remove, push } from "firebase/database";
+import { database } from "../../firebaseConfig";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
+  Card, CardContent, CardHeader, CardTitle, CardDescription
+} from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { PlusCircle, Search } from 'lucide-react';
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { PlusCircle, Search, Edit, Trash2, Save, X } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const complianceData = [
-  { id: 'C-001', type: 'GMP', status: 'Compliant', lastAudit: '2023-11-15', nextAudit: '2024-11-15', auditor: 'Jane Doe' },
-  { id: 'C-002', type: 'FDA 21 CFR Part 11', status: 'Compliant', lastAudit: '2024-01-20', nextAudit: '2025-01-20', auditor: 'John Smith' },
-  { id: 'C-003', type: 'ISO 13485', status: 'Pending', lastAudit: '2023-09-01', nextAudit: '2024-09-01', auditor: 'Emily White' },
-  { id: 'C-004', type: 'GMP', status: 'Non-Compliant', lastAudit: '2024-02-10', nextAudit: '2024-05-10', auditor: 'Michael Brown' },
-  { id: 'C-005', type: 'ISO 9001', status: 'Compliant', lastAudit: '2023-12-05', nextAudit: '2024-12-05', auditor: 'Sarah Green' },
-  { id: 'C-006', type: 'FDA 21 CFR Part 211', status: 'Compliant', lastAudit: '2024-03-01', nextAudit: '2025-03-01', auditor: 'David Clark' },
-  { id: 'C-007', type: 'GMP', status: 'Pending', lastAudit: '2024-04-18', nextAudit: '2025-04-18', auditor: 'Laura Taylor' },
-  { id: 'C-008', type: 'ISO 14001', status: 'Compliant', lastAudit: '2023-10-25', nextAudit: '2024-10-25', auditor: 'Robert Wilson' },
+type Compliance = {
+  id: string;
+  complianceId: string;
+  regulationType: string;
+  lastAudit: string;
+  nextAudit: string;
+  auditor: string;
+  status: string;
+};
+
+const statusOptions = [
+  "Compliant", "Pending", "Non-Compliant"
 ];
 
 export default function CompliancePage() {
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'Compliant':
-        return 'success';
-      case 'Pending':
-        return 'secondary';
-      case 'Non-Compliant':
-        return 'destructive';
-      default:
-        return 'outline';
+  const [compliances, setCompliances] = useState<Record<string, Compliance>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Compliance>>({});
+  const [originalData, setOriginalData] = useState<Partial<Compliance> | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [newCompliance, setNewCompliance] = useState({
+    complianceId: "",
+    regulationType: "",
+    lastAudit: "",
+    nextAudit: "",
+    auditor: "",
+    status: "Compliant",
+  });
+
+  useEffect(() => {
+    const complianceRef = ref(database, "compliance");
+    const unsubscribe = onValue(
+      complianceRef,
+      (snapshot) => {
+        const data = snapshot.val() || {};
+        setCompliances(data);
+        setIsLoading(false);
+      },
+      () => setIsLoading(false)
+    );
+    return () => unsubscribe();
+  }, []);
+
+  const handleAddCompliance = async () => {
+    if (
+      !newCompliance.complianceId || !newCompliance.regulationType ||
+      !newCompliance.lastAudit || !newCompliance.nextAudit || !newCompliance.auditor
+    ) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const complianceRef = ref(database, "compliance");
+      const newComplianceRef = push(complianceRef);
+      await set(newComplianceRef, {
+        ...newCompliance,
+        id: newComplianceRef.key,
+      });
+      setNewCompliance({
+        complianceId: "",
+        regulationType: "",
+        lastAudit: "",
+        nextAudit: "",
+        auditor: "",
+        status: "Compliant",
+      });
+      setIsDialogOpen(false);
+      toast({ title: "Success", description: "Record added." });
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to add compliance record.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleStartEdit = (id: string, compliance: Compliance) => {
+    setEditingId(id);
+    setEditForm(compliance);
+    setOriginalData(compliance);
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const complianceRef = ref(database, `compliance/${id}`);
+      await update(complianceRef, editForm);
+      toast({ title: "Success", description: "Record updated." });
+      setEditingId(null);
+      setEditForm({});
+      setOriginalData(null);
+    } catch {
+      toast({
+        title: "Error",
+        description: "Update failed.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditForm({});
+    setOriginalData(null);
+  };
+
+  const handleDelete = async (id: string, complianceId: string) => {
+    if (!confirm(`Delete compliance record ${complianceId}?`)) return;
+    setIsLoading(true);
+    try {
+      const complianceRef = ref(database, `compliance/${id}`);
+      await remove(complianceRef);
+      toast({ title: "Success", description: "Record deleted." });
+    } catch {
+      toast({
+        title: "Error",
+        description: "Delete failed.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const hasChanges =
+    originalData ? JSON.stringify(editForm) !== JSON.stringify(originalData) : false;
+
+  const filteredCompliances = Object.entries(compliances).filter(([_, c]) =>
+    c.complianceId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.regulationType?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.auditor?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.status?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle>Compliance Management</CardTitle>
-            <CardDescription>Track and manage regulatory compliance records.</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search records..." className="pl-8 sm:w-[200px] lg:w-[300px]" />
+    <div className="p-6">
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Compliance Management</CardTitle>
+              <CardDescription>
+                Track and manage regulatory compliance records.
+              </CardDescription>
             </div>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> New Record
-            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <PlusCircle className="h-5 w-5" />
+                  New Record
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Compliance Record</DialogTitle>
+                  <DialogDescription>
+                    Enter details to add a new record.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-2">
+                  <Label htmlFor="complianceId">Compliance ID</Label>
+                  <Input
+                    id="complianceId"
+                    type="text"
+                    value={newCompliance.complianceId}
+                    onChange={e =>
+                      setNewCompliance({ ...newCompliance, complianceId: e.target.value })
+                    }
+                  />
+                  <Label htmlFor="regulationType">Regulation Type</Label>
+                  <Input
+                    id="regulationType"
+                    type="text"
+                    value={newCompliance.regulationType}
+                    onChange={e =>
+                      setNewCompliance({ ...newCompliance, regulationType: e.target.value })
+                    }
+                  />
+                  <Label htmlFor="lastAudit">Last Audit</Label>
+                  <Input
+                    id="lastAudit"
+                    type="date"
+                    value={newCompliance.lastAudit}
+                    onChange={e =>
+                      setNewCompliance({ ...newCompliance, lastAudit: e.target.value })
+                    }
+                  />
+                  <Label htmlFor="nextAudit">Next Audit</Label>
+                  <Input
+                    id="nextAudit"
+                    type="date"
+                    value={newCompliance.nextAudit}
+                    onChange={e =>
+                      setNewCompliance({ ...newCompliance, nextAudit: e.target.value })
+                    }
+                  />
+                  <Label htmlFor="auditor">Auditor</Label>
+                  <Input
+                    id="auditor"
+                    type="text"
+                    value={newCompliance.auditor}
+                    onChange={e =>
+                      setNewCompliance({ ...newCompliance, auditor: e.target.value })
+                    }
+                  />
+                  <Label>Status</Label>
+                  <Select
+                    value={newCompliance.status}
+                    onValueChange={status =>
+                      setNewCompliance({ ...newCompliance, status })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map(opt => (
+                        <SelectItem key={opt} value={opt}>
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleAddCompliance} disabled={isLoading}>
+                    Add Record
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Compliance ID</TableHead>
-              <TableHead>Regulation Type</TableHead>
-              <TableHead>Last Audit</TableHead>
-              <TableHead>Next Audit</TableHead>
-              <TableHead>Auditor</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {complianceData.map((record) => (
-              <TableRow key={record.id}>
-                <TableCell className="font-medium">{record.id}</TableCell>
-                <TableCell>{record.type}</TableCell>
-                <TableCell>{record.lastAudit}</TableCell>
-                <TableCell>{record.nextAudit}</TableCell>
-                <TableCell>{record.auditor}</TableCell>
-                <TableCell>
-                  <Badge variant={getStatusVariant(record.status) as any}>{record.status}</Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search records..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Compliance ID</TableHead>
+                  <TableHead>Regulation Type</TableHead>
+                  <TableHead>Last Audit</TableHead>
+                  <TableHead>Next Audit</TableHead>
+                  <TableHead>Auditor</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCompliances.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center h-32">
+                      No records found. Click "New Record" to add.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredCompliances.map(([id, c]) => (
+                    <TableRow
+                      key={id}
+                      className={editingId === id ? "bg-blue-50 dark:bg-blue-950/20" : ""}
+                    >
+                      {/* Compliance ID */}
+                      <TableCell>
+                        {editingId === id ? (
+                          <Input
+                            type="text"
+                            value={editForm.complianceId}
+                            onChange={e => setEditForm({ ...editForm, complianceId: e.target.value })}
+                          />
+                        ) : (
+                          <span className="font-medium">{c.complianceId}</span>
+                        )}
+                      </TableCell>
+                      {/* Regulation Type */}
+                      <TableCell>
+                        {editingId === id ? (
+                          <Input
+                            type="text"
+                            value={editForm.regulationType}
+                            onChange={e => setEditForm({ ...editForm, regulationType: e.target.value })}
+                          />
+                        ) : (
+                          c.regulationType
+                        )}
+                      </TableCell>
+                      {/* Last Audit */}
+                      <TableCell>
+                        {editingId === id ? (
+                          <Input
+                            type="date"
+                            value={editForm.lastAudit}
+                            onChange={e => setEditForm({ ...editForm, lastAudit: e.target.value })}
+                          />
+                        ) : (
+                          c.lastAudit
+                        )}
+                      </TableCell>
+                      {/* Next Audit */}
+                      <TableCell>
+                        {editingId === id ? (
+                          <Input
+                            type="date"
+                            value={editForm.nextAudit}
+                            onChange={e => setEditForm({ ...editForm, nextAudit: e.target.value })}
+                          />
+                        ) : (
+                          c.nextAudit
+                        )}
+                      </TableCell>
+                      {/* Auditor */}
+                      <TableCell>
+                        {editingId === id ? (
+                          <Input
+                            type="text"
+                            value={editForm.auditor}
+                            onChange={e => setEditForm({ ...editForm, auditor: e.target.value })}
+                          />
+                        ) : (
+                          c.auditor
+                        )}
+                      </TableCell>
+                      {/* Status */}
+                      <TableCell>
+                        {editingId === id ? (
+                          <Select
+                            value={editForm.status}
+                            onValueChange={status =>
+                              setEditForm({ ...editForm, status })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {statusOptions.map(opt => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge
+                            className={
+                              c.status === "Compliant"
+                                ? "bg-green-600 text-white"
+                                : c.status === "Pending"
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-red-600 text-white"
+                            }
+                          >
+                            {c.status}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      {/* Actions */}
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          {editingId === id ? (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => handleSaveEdit(id)}
+                                disabled={isLoading || !hasChanges}
+                              >
+                                <Save className="h-4 w-4" />
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleCancelEdit}
+                                disabled={isLoading}
+                              >
+                                <X className="h-4 w-4" />
+                                Cancel
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleStartEdit(id, c)}
+                                disabled={isLoading || editingId !== null}
+                              >
+                                <Edit className="h-4 w-4" />
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDelete(id, c.complianceId)}
+                                disabled={isLoading || editingId !== null}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
