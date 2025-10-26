@@ -1,11 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 import Login from './components/Login';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
-// ...import other pages
 
 // Auth hook to monitor login state
 function useAuth() {
@@ -29,7 +28,8 @@ function PrivateRoute({ children, isAuthenticated }) {
   return isAuthenticated ? children : <Navigate to="/login" />;
 }
 
-// Log out button component
+// Log out button must be inside Router context for useNavigate to work!
+import { useNavigate } from 'react-router-dom';
 function LogoutButton() {
   const navigate = useNavigate();
 
@@ -37,7 +37,7 @@ function LogoutButton() {
     const auth = getAuth();
     try {
       await signOut(auth);
-      navigate('/login');
+      navigate('/login', { replace: true });
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -59,6 +59,7 @@ function LogoutButton() {
   );
 }
 
+// Main App (LogoutButton is now inside Router context)
 function App() {
   const { isAuthenticated, loading } = useAuth();
 
