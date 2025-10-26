@@ -28,6 +28,7 @@ import {
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from 'recharts';
 import { Box, FlaskConical, CheckCircle, PackageCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getAuth, signOut } from 'firebase/auth'; // ADD THIS LINE
 
 const batchStatusChartData = [
   { status: 'In Progress', count: 45, fill: 'hsl(var(--chart-1))' },
@@ -82,21 +83,29 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
 
+  // Log out handler
+  const handleLogout = async () => {
+    const auth = getAuth();
+    try {
+      await signOut(auth);
+      localStorage.removeItem('auth'); // clear local token
+      router.push('/login');
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
   // Check authentication on mount
   useEffect(() => {
     const checkAuth = () => {
       const authToken = localStorage.getItem('auth');
-
       if (!authToken) {
-        // Not authenticated - redirect to login
         router.push('/login');
       } else {
-        // Authenticated - show dashboard
         setIsChecking(false);
       }
     };
 
-    // Small delay to ensure client-side rendering
     const timer = setTimeout(checkAuth, 100);
     return () => clearTimeout(timer);
   }, [router]);
@@ -116,7 +125,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Show loading while checking auth
   if (isChecking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -126,7 +134,15 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 relative">
+      {/* LOG OUT BUTTON AT TOP-RIGHT */}
+      <Button
+        variant="outline"
+        className="absolute right-4 top-4 z-50"
+        onClick={handleLogout}
+      >
+        Log out
+      </Button>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Link href="/inventory">
           <Card className="hover:bg-card/90 transition-colors">
@@ -177,7 +193,6 @@ export default function DashboardPage() {
           </Card>
         </Link>
       </div>
-
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -222,7 +237,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-3">
           <CardHeader>
@@ -266,7 +280,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-
       <div className="grid gap-6 lg:grid-cols-1">
         <Card>
           <CardHeader>
