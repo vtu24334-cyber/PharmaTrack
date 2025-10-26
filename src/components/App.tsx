@@ -1,6 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 import Login from './components/Login';
 import Dashboard from './pages/Dashboard';
@@ -29,6 +29,36 @@ function PrivateRoute({ children, isAuthenticated }) {
   return isAuthenticated ? children : <Navigate to="/login" />;
 }
 
+// Log out button component
+function LogoutButton() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const auth = getAuth();
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
+  return (
+    <button
+      style={{
+        position: 'absolute',
+        right: 20,
+        top: 20,
+        padding: '8px 16px',
+        zIndex: 1000
+      }}
+      onClick={handleLogout}
+    >
+      Log out
+    </button>
+  );
+}
+
 function App() {
   const { isAuthenticated, loading } = useAuth();
 
@@ -36,6 +66,7 @@ function App() {
 
   return (
     <Router>
+      {isAuthenticated && <LogoutButton />}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
