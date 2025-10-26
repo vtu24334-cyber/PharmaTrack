@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { auth } from '@/firebaseConfig';// Adjust path to match your project
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -9,17 +12,49 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
 
-    if ((email === 'admin@pharmatrack.com' && password === 'admin123') ||
-        (email === 'user@pharmatrack.com' && password === 'user123')) {
+    try {
+      // Authenticate with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Store auth info
       localStorage.setItem('auth', 'true');
-      localStorage.setItem('userEmail', email);
-      window.location.href = '/';
-    } else {
-      setError('Invalid email or password');
+      localStorage.setItem('userEmail', user.email);
+      localStorage.setItem('userId', user.uid); // Important for database security rules
+
+      // Redirect to dashboard
+      router.push('/');
+    } catch (err) {
+      // Handle Firebase authentication errors
+      switch (err.code) {
+        case 'auth/invalid-email':
+          setError('Invalid email address format');
+          break;
+        case 'auth/user-disabled':
+          setError('This account has been disabled');
+          break;
+        case 'auth/user-not-found':
+          setError('No account found with this email');
+          break;
+        case 'auth/wrong-password':
+          setError('Incorrect password');
+          break;
+        case 'auth/invalid-credential':
+          setError('Invalid email or password');
+          break;
+        default:
+          setError(err.message || 'An error occurred during login');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,6 +73,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={loading}
           />
           <Input
             type="password"
@@ -45,15 +81,20 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={loading}
           />
           {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6">
-            Sign In
+          <Button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6"
+            disabled={loading}
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
           </Button>
         </form>
 
         <div className="space-y-3 pt-4 border-t">
-          <p className="text-sm text-gray-600">Test Accounts:</p>
+          <p className="text-sm text-gray-600">Test Accounts (register these in Firebase first):</p>
           <Button
             type="button"
             variant="outline"
@@ -62,6 +103,7 @@ export default function LoginPage() {
               setPassword('admin123');
             }}
             className="w-full"
+            disabled={loading}
           >
             Use Test Account 1
           </Button>
@@ -73,6 +115,7 @@ export default function LoginPage() {
               setPassword('user123');
             }}
             className="w-full"
+            disabled={loading}
           >
             Use Test Account 2
           </Button>

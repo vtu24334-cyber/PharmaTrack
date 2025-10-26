@@ -2,10 +2,10 @@
   "/_not-found/page": "/_not-found",
   "/favicon.ico/route": "/favicon.ico",
   "/batch-tracking/page": "/batch-tracking",
-  "/budget/page": "/budget",
-  "/compliance/page": "/compliance",
   "/formulas/page": "/formulas",
-  "/inventory/page": "/inventory",
   "/page": "/",
-  "/login/page": "/login"
+  "/inventory/page": "/inventory",
+  "/login/page": "/login",
+  "/budget/page": "/budget",
+  "/compliance/page": "/compliance"
 }
